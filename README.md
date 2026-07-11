@@ -2,6 +2,8 @@
 
 Practical portfolio project for an Asset Data Analyst style role, focused on local government infrastructure planning. The project simulates a council asset portfolio and produces reusable SQL analysis, Python preparation scripts, and dashboard-ready outputs for backlog, condition, maintenance, and renewal decisions.
 
+[Case study: architecture, trade-offs, measured validation, and limitations](docs/case-study.md)
+
 ## Recruiter Snapshot
 
 - Demonstrates SQL-based data cleaning, joins, KPI analysis, and trend analysis.
