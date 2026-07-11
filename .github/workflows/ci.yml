@@ -1,0 +1,53 @@
+name: Rebuild analytics outputs
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Regenerate synthetic source data
+        run: python scripts/generate_sample_data.py
+      - name: Rebuild dashboard outputs
+        run: python scripts/prepare_dashboard_outputs.py
+      - name: Validate required outputs
+        run: |
+          python - <<'PY'
+          import csv
+          from pathlib import Path
+
+          required = [
+              "kpi_summary.csv",
+              "asset_type_summary.csv",
+              "suburb_risk_summary.csv",
+              "monthly_maintenance_trend.csv",
+              "annual_condition_trend.csv",
+              "renewal_priority_register.csv",
+          ]
+          root = Path("outputs/dashboard")
+          missing = [name for name in required if not (root / name).exists()]
+          if missing:
+              raise SystemExit(f"Missing dashboard outputs: {missing}")
+
+          for name in required:
+              with (root / name).open(newline="", encoding="utf-8") as handle:
+                  rows = list(csv.reader(handle))
+              if len(rows) < 2:
+                  raise SystemExit(f"Output has no data rows: {name}")
+          PY
+      - name: Upload dashboard-ready outputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: dashboard-ready-csvs
+          path: outputs/dashboard
+          if-no-files-found: error
